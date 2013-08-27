@@ -1,5 +1,22 @@
 if(Meteor.isServer){
 
+	Funnels.allow({
+	  insert: function (userId, doc) {
+	    // the user must be logged in, and the document must be owned by the user
+	    return (userId && doc.owner === userId);
+	  },
+	  update: function (userId, doc, fields, modifier) {
+	    // can only change your own documents
+	    
+	    return doc.owner === userId;
+	  },
+	  remove: function (userId, doc) {
+	    // can only remove your own documents
+	    return doc.owner === userId;
+	  },
+	  fetch: ['owner']
+	});
+
 	Meteor.publish('app', function(){
 		return Funnels.find({})
 	});
@@ -10,35 +27,40 @@ if(Meteor.isServer){
 				return true
 			else
 				return false
+		},
+		updateToEmail: function(email){
+			Funnels.update(Meteor.userId(), {$set: {to_email: email}});
 		}
 	});
+
+	Accounts.onCreateUser(function(options, user) {
+		var funnel = {
+			_id: user._id,
+			to_email: user.emails[0].address,
+			aliases: []
+		}
+		Funnels.insert(funnel);
+		return user;	
+	});
+
+
 	
 }
 
 if(Meteor.isClient){
 
 	var pages = ['#home', '#aliases', '#stats', '#settings'];
-	Meteor.subscribe('app', function(){
-			console.log('done');
-	});
-	test = new Meteor.Collection("funnels");
-
+	Meteor.subscribe('app')
+	
+	Funnels = new Meteor.Collection("funnels");
 
 
 	Template['settings'].events({
 		'submit': function(e) {
 			e.preventDefault();
-			// var email = $('#email').val();
-			 console.log(test.findOne({}))
-			// if(App.find({userId: Meteor.userId()})){
-			// 	App.update({userId: Meteor.userId()}, {$set: {toEmail: email}});
-			// }else{
-			// 	App.insert({
-			// 		userId: Meteor.userId(),
-			// 		toEmail: email,
-			// 		aliases: []
-			// 	})
-			// }
+			var email = $('#email').val();
+
+			Meteor.call('updateToEmail', $('#to_email').val())
 			
 		}
 	});	

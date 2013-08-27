@@ -2,23 +2,32 @@ var smtp = Npm.require('smtp-protocol');
 var seq = Npm.require('seq');
 var fs = Npm.require('fs');
 var s = Npm.require('stream');
+var Fiber = Npm.require('fibers');
 
 Funnels = new Meteor.Collection("funnels");
 
-var users = Funnels.find({});
-
-users.forEach(function (user) {
-    console.log(user.domain)
-});
-
+var funnels = Funnels.find({});
 
 var server = smtp.createServer(function (req) {
     req.on('to', function (to, ack) {
+        Fiber(function() { 
+        var domain = to.split('@')[1];
+        var accept = false;
         
+        funnels.forEach(function (funnel) {
+            console.log(funnel)
+            if(funnel.to_email.split('@')[1] === domain){
+                accept = true;
+            }
+        });
+        funnels.rewind();
 
-        var domain = to.split('@')[1] || 'localhost';
-        if (domain === 'andrek.se') ack.accept()
-        else ack.reject()
+        if(accept)
+            ack.accept()
+        else
+            ack.reject()
+
+        }).run()
     });
 
     req.on('message', function (stream, ack) {
