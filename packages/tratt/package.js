@@ -9,5 +9,10 @@ Npm.depends({
 });
 
 Package.on_use(function (api, where) {
+	where = where || ['client', 'server'];
+	api.use('mongo-livedata', where);
+	api.use('startup', where);
 	api.add_files('tratt.js','server');
+	api.export('Funnels');
+	api.export('test');
 });

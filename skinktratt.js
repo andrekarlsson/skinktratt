@@ -1,28 +1,47 @@
 if(Meteor.isServer){
-	var App = new Meteor.Collection("app");
 
 	Meteor.publish('app', function(){
-		return App.find({})
+		return Funnels.find({})
 	});
 
 	Meteor.methods({
 		registered: function(username){
-			console.log(username)
 			if(Meteor.users.find({username:username}).count() > 0)
 				return true
 			else
 				return false
 		}
 	});
+	
 }
 
 if(Meteor.isClient){
 
 	var pages = ['#home', '#aliases', '#stats', '#settings'];
-
-	var App = Meteor.subscribe('app', function(){
-		console.log('done');
+	Meteor.subscribe('app', function(){
+			console.log('done');
 	});
+	test = new Meteor.Collection("funnels");
+
+
+
+	Template['settings'].events({
+		'submit': function(e) {
+			e.preventDefault();
+			// var email = $('#email').val();
+			 console.log(test.findOne({}))
+			// if(App.find({userId: Meteor.userId()})){
+			// 	App.update({userId: Meteor.userId()}, {$set: {toEmail: email}});
+			// }else{
+			// 	App.insert({
+			// 		userId: Meteor.userId(),
+			// 		toEmail: email,
+			// 		aliases: []
+			// 	})
+			// }
+			
+		}
+	});	
 
 	Template['nav'].events({
 		'click .pages li': function (e, tmpl) {

@@ -3,29 +3,31 @@ var seq = Npm.require('seq');
 var fs = Npm.require('fs');
 var s = Npm.require('stream');
 
+Funnels = new Meteor.Collection("funnels");
+
+var users = Funnels.find({});
+
+users.forEach(function (user) {
+    console.log(user.domain)
+});
+
+
 var server = smtp.createServer(function (req) {
-    // req.on('to', function (to, ack) {
-    //     var domain = to.split('@')[1] || 'localhost';
-    //     if (domain === 'andrek.se') ack.accept()
-    //     else ack.reject()
-    // });
+    req.on('to', function (to, ack) {
+        
+
+        var domain = to.split('@')[1] || 'localhost';
+        if (domain === 'andrek.se') ack.accept()
+        else ack.reject()
+    });
 
     req.on('message', function (stream, ack) {
-        var service = req.from.split('@')[0];
-        var addToSubject = new s.Transform();
-        
-        addToSubject._transform = function(chunk, encoding, done) {
-            var subject = chunk.toString().indexOf('Subject:');
-            if(chunk.toString().indexOf('Subject') != -1)
-            this.push('Subject: [' + service + '] ' + chunk.toString().substring(subject+8));
-            done();
-        };
+        var alias = req.from.split('@')[0];
 
         smtp.connect('smtp.tele2.se', 25, function (mail) {
             seq()
                 .seq_(function (next) {
                     mail.on('greeting', function (code, lines) {
-                        console.dir(lines);
                         next();
                     });
                 })
@@ -52,7 +54,6 @@ var server = smtp.createServer(function (req) {
                 })
             ;
         });
-        stream.pipe(addToSubject).pipe(process.stdout, { end : false });
         ack.accept();
     });
 
