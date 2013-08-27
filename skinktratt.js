@@ -18,7 +18,7 @@ if(Meteor.isClient){
 	});
 
 	Template['nav'].events({
-		"click .pages li": function (e, tmpl) {
+		'click .pages li': function (e, tmpl) {
 			$('.pages').find('.active').removeClass('active')
 			$(e.target).parent().toggleClass('active');
 			
