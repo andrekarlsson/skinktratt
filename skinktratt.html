@@ -108,17 +108,17 @@
 	<div class="container-fluid">
 		<div class="row-fluid">
 			<div class="span2 offset5">
-			{{> home}}
-			{{> aliases}}
-			{{> stats}}
-			{{> settings}}
+			<div id="home" class="{{visibility 'home'}}">{{> home}}</div>
+			<div id="aliases" class="{{visibility 'aliases'}}">{{> aliases}}</div>
+			<div id="stats" class="{{visibility 'stats'}}">{{> stats}}</div>
+			<div id="settings" class="{{visibility 'settings'}}">{{> settings}}</div>
 			</div>
     	</div>
     </div>
 </template>
 
 <template name="home">
-	<div id="home">Home</div>
+	Home</div>
 </template>
 
 <template name="aliases">
@@ -132,8 +132,11 @@
 <template name="settings">
 	<div id="settings">
 		<h2>Settings</h2>
+		{{#if settingsAlert}}
+			<div id="settings_alert" class="alert alert-success">Succesfully saved</div>
+		{{/if}}
 		<form id="settings_form">
-			<input id="to_email"  class="span12" placeholder="Address to forward to"/>
+			<input id="to_email"  class="span12" placeholder="Address to forward to" value="{{email}}"/>
 			<input type="submit" class="btn-primary span12" value="save">
 		</form>
 	</div>

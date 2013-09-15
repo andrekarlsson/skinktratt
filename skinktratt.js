@@ -7,18 +7,16 @@ if(Meteor.isServer){
 	  },
 	  update: function (userId, doc, fields, modifier) {
 	    // can only change your own documents
-	    
-	    return doc.owner === userId;
+	    return doc._id === userId;
 	  },
 	  remove: function (userId, doc) {
 	    // can only remove your own documents
-	    return doc.owner === userId;
-	  },
-	  fetch: ['owner']
+	    return doc._id === userId;
+	  }
 	});
 
 	Meteor.publish('app', function(){
-		return Funnels.find({})
+		return Funnels.find(this.userId)
 	});
 
 	Meteor.methods({
@@ -27,9 +25,6 @@ if(Meteor.isServer){
 				return true
 			else
 				return false
-		},
-		updateToEmail: function(email){
-			Funnels.update(Meteor.userId(), {$set: {to_email: email}});
 		}
 	});
 
@@ -58,12 +53,24 @@ if(Meteor.isClient){
 	Template['settings'].events({
 		'submit': function(e) {
 			e.preventDefault();
-			var email = $('#email').val();
-
-			Meteor.call('updateToEmail', $('#to_email').val())
+			e.stopPropagation();
+			var email = $('#to_email').val();
+			Funnels.update(Meteor.userId(), {$set: {to_email: email}});
+			Session.set('settingsAlert', true);
+			Meteor.setTimeout(function() { Session.set('settingsAlert', false);}, 2000);
+			return false;
 			
 		}
-	});	
+	});
+
+	Template['settings'].helpers({
+		email: function () {
+			return Funnels.findOne({}).to_email
+		},
+		settingsAlert: function(){
+			return Session.get('settingsAlert') 
+		}
+	});
 
 	Template['nav'].events({
 		'click .pages li': function (e, tmpl) {
@@ -71,15 +78,20 @@ if(Meteor.isClient){
 			$(e.target).parent().toggleClass('active');
 			
 			var id = $(e.target).prop('hash');
-
-			pages.forEach(function (page) {
-				$(page).css('display', 'none');
-			});
-			$(id).css('display', 'block');
+			Session.set('activePage', id.split('#')[1])
 
 		},
 		'click .actions li': function(e){
 			Meteor.logout();
+		}
+	});
+
+	Template['main'].helpers({
+		visibility: function (pageId) {
+			if(Session.get('activePage') === pageId)
+				return 'visible'
+			else
+				return 'hidden'
 		}
 	});
 
